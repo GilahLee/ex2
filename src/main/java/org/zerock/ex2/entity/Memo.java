@@ -1,6 +1,6 @@
 package org.zerock.ex2.entity;
 
-import lombok.ToString;
+import lombok.*;
 
 import javax.annotation.Generated;
 import javax.persistence.*;
@@ -8,6 +8,10 @@ import javax.persistence.*;
 @Entity
 @Table(name="tbl_memo")
 @ToString
+@Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Memo {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
