@@ -6,9 +6,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.test.annotation.Commit;
 import org.zerock.ex2.entity.Memo;
 
 import javax.transaction.Transactional;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
@@ -89,5 +92,62 @@ public class MemoRepositoryTests {
         System.out.println("-----------------------------------");
         for (Memo memo: result.getContent())
             System.out.println(memo);
+    }
+
+    // 정렬된 Paging
+    @Test
+    public void testSort() {
+        Sort sort1 = Sort.by("mno").descending();
+        Pageable pageable = PageRequest.of(0, 10, sort1);
+        Page<Memo> result = memoRepository.findAll(pageable);
+
+        result.get().forEach(memo -> {
+            System.out.println(memo);
+        });
+    }
+
+    //  여러 개의 정렬 조건을 가진 데이터 Paging
+    @Test
+    public void testSort2() {
+        Sort sort1 = Sort.by("mno").descending();
+        Sort sort2 = Sort.by("memoText").ascending();
+        Sort sortAll = sort1.and(sort2);  // and()를 이용해 2개의 조건을 연결
+
+        Pageable pageable = PageRequest.of(0, 10, sortAll);
+        Page<Memo> result = memoRepository.findAll(pageable);
+
+        result.get().forEach(memo -> {
+            System.out.println(memo);
+        });
+    }
+
+    // 쿼리 메소드를 적용한 메소드
+    @Test
+    public void testQueryMethods() {
+        List<Memo> list = memoRepository.findByMnoBetweenOrderByMnoDesc(70L, 80L);
+
+        for(Memo memo : list)
+            System.out.println(memo);
+    }
+
+    // 쿼리 메소드와 페이징을 적용한 메소드
+    @Test
+    public void testQueryMethodWithPageable() {
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("mno").descending());
+        Page<Memo> result = memoRepository.findByMnoBetween(10L, 50L, pageable);
+
+        result.get().forEach(memo -> {
+            System.out.println(memo);
+        });
+    }
+
+    // 쿼리 메소드로 데이터 삭제하기
+    // 삭제 후 RollBack처리되므로 @Transactional과 @Commit이 필요. (실무에서 많이 사용되지는 않음)
+    // delete는 쿼리 메소드보다 @Query를 사용하는 것이 효율적
+    @Commit
+    @Transactional
+    @Test
+    public void testDeleteQueryMethods() {
+        memoRepository.deleteMemoByMnoLessThan(10L);
     }
 }
